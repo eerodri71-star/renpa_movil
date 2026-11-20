@@ -22,15 +22,6 @@ No funciona correctamente abriendo index.html directamente desde el móvil ni de
 El mapa y los datos/cartografía de la aplicación se guardan para consulta sin conexión tras la primera carga.
 El mapa de fondo satélite necesita conexión a Internet.
 
-PUBLICAR GRATIS CON NETLIFY DROP (opción sencilla)
-1. Descomprime RENPA_publicacion.zip en un ordenador.
-2. Entra en https://app.netlify.com/drop (puede pedirte crear una cuenta gratuita).
-3. Arrastra la carpeta RENPA_publicacion completa a la zona de publicación.
-   Debes arrastrar la carpeta que contiene directamente index.html, manifest.webmanifest y sw.js.
-4. Netlify generará una dirección HTTPS pública del tipo https://....netlify.app.
-5. Abre esa dirección en un móvil para comprobar que carga correctamente.
-6. Comparte ese enlace con las personas que vayan a utilizar la aplicación. Al abrirlo verán una pantalla de bienvenida con el botón «INSTALAR RENPA» y las instrucciones correspondientes.
-
 INSTALAR EN ANDROID
 1. Abrir el enlace con Chrome.
 2. Abrir el menú ⋮ y elegir «Instalar aplicación» o «Añadir a pantalla de inicio».
