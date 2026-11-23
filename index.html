@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6b3a"><link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>RENPA · Espacios protegidos por municipio</title>
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+:root{--v:#2f6b3a;--vc:#e6f0e7;--t:#1f2a22;--g:#6b756d;--b:#d5ddd6}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:16px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f6f8f6;color:var(--t);padding-bottom:env(safe-area-inset-bottom)}
+header{background:#fff;padding-top:env(safe-area-inset-top)}header img{display:block;width:100%;height:auto}
+main{padding:14px 12px 28px;max-width:760px;margin:0 auto}h1{font-size:1.2rem;margin:0 0 10px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;padding:11px 6px;border:1px solid var(--b);background:#fff;border-radius:9px;font:inherit;font-weight:600;color:var(--t)}.tabs .on{background:var(--v);border-color:var(--v);color:#fff}
+.bus{position:relative}#q{width:100%;padding:13px 14px;font-size:16px;border:2px solid var(--b);border-radius:10px;background:#fff;outline:0}#q:focus{border-color:var(--v)}
+#sug{position:absolute;left:0;right:0;top:100%;margin:4px 0 0;padding:0;list-style:none;background:#fff;border:1px solid var(--b);border-radius:10px;max-height:50vh;overflow:auto;z-index:1000;box-shadow:0 6px 18px #0002}
+#sug li{padding:12px 14px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eef2ee}#sug small{color:var(--g);text-align:right}
+.filtros{margin:10px 0;font-size:.9rem;color:var(--g)}.filtros summary{cursor:pointer}.filtros label{display:block;padding:6px 0}
+.mun{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:16px 0 2px}.mun h2{margin:0;font-size:1.3rem}.mun span,.res,.vacio{color:var(--g)}.res{margin:0 0 8px}
+.aviso{background:#fff4e5;border:1px solid #f0c27b;color:#7a4a00;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:.9rem}
+#mb{margin:12px 0}.ctl{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--g);margin-bottom:6px}.ctl select{padding:7px;border:1px solid var(--b);border-radius:7px;background:#fff}
+#mapa{height:52vh;min-height:300px;border-radius:12px;border:1px solid var(--b);background:#dce5e8}
+.capas{margin-top:8px;font-size:.88rem}.capas summary{cursor:pointer;color:var(--v);font-weight:600}
+.pg{background:#fff;border:1px solid var(--b);border-radius:10px;padding:8px 10px;margin-top:6px}.pcab{display:block;font-weight:600;color:var(--v);margin-bottom:3px}
+.pit{display:flex;align-items:center;gap:6px;padding:4px 0}.pit i,#ley i{width:12px;height:12px;border-radius:3px;flex:none;display:inline-block}
+#ley{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--g);margin-top:8px}#ley span{display:flex;align-items:center;gap:5px}
+.grupo{margin:16px 0}.grupo h3,#lis>h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--v);margin:0 0 8px;padding-bottom:4px;border-bottom:2px solid var(--vc)}
+.esp{background:#fff;border:1px solid var(--b);border-radius:10px;padding:11px 12px;margin-bottom:8px}.esp.rui{background:#fff8f8;border:1px dashed #efb8b8}
+.fila{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.nom{font-weight:600}.tipo{display:inline-block;font-size:.74rem;background:var(--vc);color:var(--v);padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:500}
+.pct{font-weight:700;color:var(--v);white-space:nowrap}.rui .pct{color:#b42323}.barra{height:8px;background:var(--vc);border-radius:99px;margin:8px 0 6px;overflow:hidden}.barra div{height:100%;background:var(--v)}.rui .barra div{background:#d62828}
+.det{font-size:.85rem;color:var(--g)}.rev{color:#9a6700}.ruit{color:#b42323;font-weight:600}
+.munlist{display:grid;gap:7px}.mc{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--b);border-radius:9px;padding:10px 12px;font:inherit;color:var(--t)}.mc strong{color:var(--v)}.mc small{color:var(--g);margin-left:8px}.mc .det{display:block;margin-top:3px}
+#geoEst,#carga{background:#fff;border:1px dashed var(--b);border-radius:10px;padding:14px;color:var(--g);text-align:center;margin:12px 0}
+footer{font-size:.78rem;color:var(--g);margin-top:22px;line-height:1.45}
+
+#welcome{max-width:560px;margin:18px auto;padding:22px 18px 26px;background:#fff;border:1px solid var(--b);border-radius:18px;box-shadow:0 8px 28px #14251a12;text-align:center}
+#welcome .wicon{width:88px;height:88px;object-fit:contain;border-radius:20px;margin:8px auto 14px;display:block}
+#welcome h1{font-size:1.45rem;margin:0 0 8px;color:var(--v)}
+#welcome p{color:var(--g);line-height:1.45;margin:8px 0 16px}
+#welcome .wbtn{display:block;width:100%;border:0;border-radius:12px;background:var(--v);color:#fff;padding:15px 16px;font:700 1.05rem system-ui;cursor:pointer;margin:10px 0}
+#welcome .wsecondary{background:#eef4ee;color:var(--v)}
+#welcome .steps{display:none;text-align:left;background:#f5f8f5;border-radius:12px;padding:13px 15px;margin:14px 0;color:var(--t);line-height:1.55}
+#welcome .steps strong{color:var(--v)}
+#welcome .tiny{font-size:.82rem;margin:12px 0 0}
+@media(min-width:600px){#welcome{margin-top:28px}}
+</style>
+
+<!-- Previsualización al compartir RENPA -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Buscador RENPA">
+<meta property="og:description" content="Visor interactivo para consultar los espacios naturales protegidos de Andalucía por municipio.">
+<meta property="og:image" content="https://eerodri71-star.github.io/renpa_movil/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://eerodri71-star.github.io/renpa_movil/">
+<meta name="twitter:card" content="summary">
+
+</head>
+<body>
+<header><img src="cabecera.png" alt="Cofinanciado por la Unión Europea · Ministerio de Hacienda · Fondos Europeos · Junta de Andalucía, Consejería de Sostenibilidad y Medio Ambiente"></header>
+<section id="welcome" aria-labelledby="welcomeTitle">
+<img class="wicon" src="icon-192.png" alt="Icono RENPA">
+<h1 id="welcomeTitle">Aplicación RENPA</h1>
+<p>Consulta los espacios naturales protegidos por municipio desde tu móvil.</p>
+<button class="wbtn" id="installBtn">INSTALAR RENPA</button>
+<div class="steps" id="androidSteps">
+<strong>Para instalarla:</strong><br>
+1. Pulsa los tres puntos <strong>⋮</strong> de Chrome.<br>
+2. Elige <strong>«Instalar aplicación»</strong> o <strong>«Añadir a pantalla de inicio»</strong>.<br>
+3. Confirma la instalación.
+</div>
+<div class="steps" id="iosSteps">
+<strong>Para instalarla en iPhone:</strong><br>
+1. Pulsa el botón <strong>Compartir</strong> de Safari (el cuadrado con la flecha hacia arriba).<br>
+2. Baja y selecciona <strong>«Añadir a pantalla de inicio»</strong>.<br>
+3. Pulsa <strong>«Añadir»</strong> para confirmar.<br>
+4. Busca el icono RENPA en tu pantalla de inicio y ábrelo.
+</div>
+<button class="wbtn wsecondary" id="openBtn">CONTINUAR A RENPA</button>
+<p class="tiny">La primera vez, abre la aplicación con conexión a Internet para descargar los datos y la cartografía.</p>
+</section>
+<main hidden>
+<h1>Espacios protegidos · RENPA</h1>
+<div id="carga">Cargando datos…</div>
+<div id="app" hidden>
+<div class="tabs"><button id="tM" class="on">Por municipio</button><button id="tE">Por espacio</button></div>
+<div class="bus"><input id="q" type="search" autocomplete="off" placeholder="Escribe el nombre de un municipio…"><ul id="sug" hidden></ul></div>
+<details class="filtros"><summary>Filtros de visualización</summary>
+<label><input type="checkbox" id="fRev" checked> Incluir solapes pequeños (a revisar)</label>
+<label><input type="checkbox" id="fRui" checked> Mostrar solapes descartados (posible fallo de geometría)</label></details>
+<div id="cab"></div>
+<div id="geoEst" hidden>Cargando cartografía (solo la primera vez)…</div>
+<section id="mb" hidden><div class="ctl"><label for="bm">Fondo del mapa:</label><select id="bm"><option value="sat">Satélite</option><option value="none">Sin mapa base</option></select></div>
+<div id="mapa"></div><details class="capas" id="capDet"><summary>Capas visibles</summary><div id="cap"></div></details><div id="ley"></div></section>
+<div id="lis"></div>
+<footer><p>Los resultados indican relaciones espaciales detectadas en las capas cartográficas utilizadas (REDIAM); no significan que todo el municipio esté protegido ni sustituyen la comprobación oficial. «% del municipio»: parte de la superficie municipal ocupada por el espacio; «% del espacio»: parte del espacio que cae en el municipio. Un municipio puede pertenecer a varias figuras a la vez, por lo que los porcentajes no se suman.</p>
+<p id="pie"></p><p id="estadoSincronizacion" aria-live="polite">Consultando correcciones publicadas…</p><p id="off">Versión de consulta. La cartografía de fondo requiere conexión.</p></footer>
+</div></main>
+<script src="lib/leaflet.js"></script>
+<script src="config-publicacion.js"></script>
+<script src="correcciones-iniciales.js"></script>
+<script src="cargar-correcciones.js"></script>
+<script>
+(()=>{
+const $=i=>document.getElementById(i);
+const welcome=$('welcome'),main=$('app')?.closest('main'),installBtn=$('installBtn');
+let deferredInstall=null;
+const ua=navigator.userAgent||'';
+const isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isAndroid=/android/i.test(ua);
+const showApp=()=>{welcome.hidden=true;main.hidden=false};
+if(isIOS){$('iosSteps').style.display='block';installBtn.textContent='CÓMO INSTALAR EN IPHONE';}
+else if(isAndroid){$('androidSteps').style.display='block';}
+else {$('androidSteps').style.display='block';installBtn.textContent='VER CÓMO INSTALAR';}
+window.addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault();deferredInstall=e;
+ installBtn.textContent='INSTALAR RENPA';
+});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;showApp()});
+installBtn.addEventListener('click',async()=>{
+ if(deferredInstall){
+  deferredInstall.prompt();
+  const choice=await deferredInstall.userChoice;
+  deferredInstall=null;
+  if(choice&&choice.outcome==='accepted')showApp();
+  else $('androidSteps').style.display='block';
+ }else if(isIOS){
+  $('iosSteps').style.display='block';
+ }else{
+  $('androidSteps').style.display='block';
+ }
+});
+$('openBtn').addEventListener('click',showApp);
+if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true)showApp();
+
+const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const fmt=(n,d=2)=>Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e};
+const COL={'Espacios Naturales Protegidos':'#2f6b3a','Red Natura 2000':'#1f6fb2','Reserva de la Biosfera':'#d98a00','ZEPIM':'#8e3fb0'},col=f=>COL[f]||'#555';
+let modo='mun',actual=null,espSel=null,geoOk=false,lista=[],listaEsp=[],EX=new Map(),CF=new Map(),map,base,grp,items=[];
+const $q=$('q'),$sug=$('sug'),$cab=$('cab'),$lis=$('lis'),$mb=$('mb'),$bm=$('bm'),$cap=$('cap'),$ley=$('ley'),$fR=$('fRev'),$fU=$('fRui'),$gs=$('geoEst');
+const mk=a=>{const m=new Map();(a||[]).forEach(x=>m.set(x.clave,x.accion));return m};
+const keyOf=e=>e.figura+'||'+e.espacio+'||'+(e.tipo||'');
+const ek=(c,e)=>[c,norm(e.figura),norm(e.espacio),norm(e.tipo||'')].join('||');
+const cls=e=>{const p=Number(e.pct_municipio);if(!Number.isFinite(p))return e.clasificacion||e.clasif;return p<=0.01?'RUIDO':p<=0.10?'REVISAR':'CLARO'};
+const excl=(c,e)=>EX.get(ek(c,e))==='EXCLUIR',conf=(c,e)=>CF.get(ek(c,e))==='CONFIRMAR';
+const pend=(c,e)=>cls(e)==='RUIDO'&&!conf(c,e);
+const vis=(c,e)=>{if(excl(c,e))return false;if(conf(c,e))return true;const k=cls(e);if(k==='REVISAR')return $fR.checked;if(k==='RUIDO')return $fU.checked;return true};
+const etq=(c,e)=>{const k=cls(e),cf=conf(c,e);if(k==='RUIDO')return cf?['✓ solape pequeño confirmado','rev']:['⚠ posible fallo de geometría (solape mínimo)','ruit'];if(k==='REVISAR')return cf?['✓ solape pequeño confirmado','rev']:['solape pequeño, a revisar','rev'];return null};
+const ls=s=>new Promise((ok,ko)=>{const t=document.createElement('script');t.src=s;t.onload=ok;t.onerror=()=>ko(s);document.head.appendChild(t)});
+
+Promise.all([ls('data/RENPA_datos.js'),window.RENPA_CARGAR_CORRECCIONES()]).then(init)
+ .catch(()=>{$('carga').textContent='No se han podido cargar los datos. Abre la aplicación con conexión al menos una vez.'});
+
+function init(){
+ EX=mk(window.INCIDENCIAS_RENPA);CF=mk(window.SOLAPES_CONFIRMADOS_RENPA);
+ lista=Object.entries(DATOS).map(([cod,m])=>({cod,nombre:m.nombre,provincia:m.provincia,n:norm(m.nombre)})).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ const cat=new Map();
+ Object.entries(DATOS).forEach(([cod,m])=>m.espacios.forEach(e=>{const k=norm(e.figura)+'||'+norm(e.espacio);if(!cat.has(k))cat.set(k,{key:k,figura:e.figura,espacio:e.espacio,nombre:e.espacio,n:norm(e.espacio),cods:new Set()});cat.get(k).cods.add(cod)}));
+ listaEsp=[...cat.values()].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es')||a.figura.localeCompare(b.figura,'es'));
+ $('carga').hidden=true;$('app').hidden=false;
+ const act=(m,a)=>[...m.values()].filter(x=>x===a).length;
+ const f=[...(window.INCIDENCIAS_RENPA||[]),...(window.SOLAPES_CONFIRMADOS_RENPA||[])].map(x=>x.fecha).filter(Boolean).sort();
+ $('pie').textContent='Correcciones incorporadas: '+act(EX,'EXCLUIR')+' relaciones excluidas · '+act(CF,'CONFIRMAR')+' solapes pequeños confirmados'+(f.length?' (última: '+new Date(f[f.length-1]).toLocaleDateString('es-ES')+')':'')+'.';
+ ls('data/RENPA_geo.js').then(()=>{geoOk=true;$gs.hidden=true;refrescar()}).catch(()=>{$gs.textContent='No se ha podido cargar la cartografía.'});
+}
+const refrescar=()=>{if(modo==='mun'&&actual)mostrarMun();else if(modo==='esp'&&espSel)mostrarEsp()};
+
+function setTab(){$('tM').classList.toggle('on',modo==='mun');$('tE').classList.toggle('on',modo==='esp');$q.placeholder=modo==='mun'?'Escribe el nombre de un municipio…':'Escribe el nombre de un espacio natural…'}
+function cambiar(m){modo=m;actual=null;espSel=null;$q.value='';$sug.hidden=true;$cab.innerHTML='';$lis.innerHTML='';$mb.hidden=true;$gs.hidden=true;setTab();$q.focus()}
+$('tM').onclick=()=>cambiar('mun');$('tE').onclick=()=>cambiar('esp');
+$fR.onchange=$fU.onchange=refrescar;
+
+function sugerir(){
+ const t=norm($q.value);$sug.innerHTML='';
+ if(!t){$sug.hidden=true;return}
+ const r=(modo==='mun'?lista:listaEsp).filter(x=>x.n.includes(t)||(modo==='esp'&&norm(x.figura).includes(t))).sort((a,b)=>(b.n.startsWith(t)-a.n.startsWith(t))||a.nombre.localeCompare(b.nombre,'es')).slice(0,15);
+ r.forEach(x=>{const li=el('li');li.append(el('span',null,x.nombre));
+  const av=modo==='mun'&&DATOS[x.cod].espacios.some(e=>!excl(x.cod,e)&&pend(x.cod,e));
+  li.append(el('small',null,modo==='mun'?(av?'⚠ ':'')+(x.provincia||''):x.figura));
+  li.onclick=()=>modo==='mun'?verMun(x.cod):verEsp(x);$sug.append(li)});
+ $sug.hidden=!r.length;
+}
+$q.addEventListener('input',()=>{actual=null;espSel=null;$cab.innerHTML='';$lis.innerHTML='';$mb.hidden=true;sugerir()});
+$q.addEventListener('focus',sugerir);
+$q.addEventListener('keydown',e=>{if(e.key==='Enter'){const l=$sug.firstChild;if(l)l.click();e.preventDefault()}});
+document.addEventListener('click',e=>{if(!e.target.closest('.bus'))$sug.hidden=true});
+
+function verMun(cod){modo='mun';setTab();actual=cod;espSel=null;$q.value=DATOS[cod].nombre;$sug.hidden=true;$q.blur();mostrarMun();window.scrollTo({top:0,behavior:'smooth'})}
+function verEsp(x){modo='esp';setTab();espSel=x;actual=null;$q.value=x.espacio+' · '+x.figura;$sug.hidden=true;$q.blur();mostrarEsp()}
+
+function tarjeta(cod,e){
+ const c=el('div','esp'+(pend(cod,e)?' rui':'')),f=el('div','fila'),iz=el('div');
+ iz.append(el('span','nom',e.espacio));if(e.tipo)iz.append(el('span','tipo',e.tipo));
+ f.append(iz,el('span','pct',fmt(e.pct_municipio)+' %'));c.append(f);
+ const b=el('div','barra'),r=el('div');r.style.width=Math.max(1,Math.min(100,e.pct_municipio))+'%';b.append(r);c.append(b);
+ const d=el('div','det',fmt(e.solape_ha)+' ha en el municipio · '+fmt(e.pct_espacio)+' % del espacio'),t=etq(cod,e);
+ if(t)d.append(el('span',t[1],' · '+t[0]));c.append(d);
+ c.onclick=()=>enfocar(keyOf(e));return c;
+}
+function mostrarMun(){
+ $cab.innerHTML='';$lis.innerHTML='';const m=DATOS[actual];
+ const h=el('div','mun');h.append(el('h2',null,m.nombre),el('span',null,m.provincia||''));$cab.append(h);
+ const todos=m.espacios.filter(e=>!excl(actual,e)),sh=todos.filter(e=>vis(actual,e)),pen=todos.filter(e=>pend(actual,e)).length;
+ if(pen)$cab.append(el('div','aviso','⚠ Este municipio tiene '+pen+(pen===1?' solape mínimo':' solapes mínimos')+' con espacios protegidos que podrían ser un fallo de geometría, no una afección real. Conviene revisarlo.'));
+ if(!sh.length){$cab.append(el('div','vacio','Este municipio no tiene espacios protegidos de la RENPA registrados.'));$mb.hidden=true;return}
+ const nR=sh.filter(e=>!pend(actual,e)).length,nP=sh.length-nR;
+ $cab.append(el('p','res',nR+(nR===1?' espacio protegido':' espacios protegidos')+(nP?' · '+nP+(nP===1?' posible fallo de geometría':' posibles fallos de geometría'):'')));
+ dibujarMun();
+ const g={};sh.forEach(e=>(g[e.figura]=g[e.figura]||[]).push(e));
+ Object.keys(g).sort((a,b)=>a.localeCompare(b,'es')).forEach(f=>{const d=el('div','grupo');d.append(el('h3',null,f));
+  g[f].sort((a,b)=>pend(actual,a)-pend(actual,b)||b.pct_municipio-a.pct_municipio).forEach(e=>d.append(tarjeta(actual,e)));$lis.append(d)});
+}
+function mostrarEsp(){
+ $cab.innerHTML='';$lis.innerHTML='';const x=espSel;
+ const ms=[...x.cods].map(cod=>{const m=DATOS[cod],rel=m.espacios.filter(e=>norm(e.figura)+'||'+norm(e.espacio)===x.key&&vis(cod,e));return rel.length?{cod,nombre:m.nombre,provincia:m.provincia,rel}:null}).filter(Boolean).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ const h=el('div','mun');h.append(el('h2',null,x.espacio),el('span',null,x.figura));
+ $cab.append(h,el('p','res',ms.length+(ms.length===1?' municipio relacionado':' municipios relacionados')));
+ if(!ms.length)$cab.append(el('div','aviso','No hay municipios con relaciones activas para este espacio según los filtros actuales.'));
+ dibujarEsp(ms);
+ const lw=el('div','munlist');
+ ms.forEach(m=>{const b=el('button','mc');b.append(el('strong',null,m.nombre),el('small',null,m.provincia||''),el('span','det',m.rel.map(e=>fmt(e.pct_municipio)+' % ('+(e.tipo||e.figura)+')').join(' · ')));b.onclick=()=>verMun(m.cod);lw.append(b)});
+ $lis.append(el('h3',null,'Municipios incluidos'),lw);
+}
+
+function initMap(){if(map)return;map=L.map('mapa',{preferCanvas:true}).setView([37.4,-4.7],7);grp=L.featureGroup().addTo(map);setBase()}
+function setBase(){if(!map)return;if(base){map.removeLayer(base);base=null}
+ if($bm.value==='sat'){base=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri'}).addTo(map);base.bringToBack()}}
+$bm.onchange=setBase;
+function mostrarMapa(){if(!geoOk){$mb.hidden=true;$gs.hidden=false;return false}$gs.hidden=true;$mb.hidden=false;initMap();grp.clearLayers();items=[];return true}
+function pop(e,cod,conMun){
+ const d=el('div'),m=DATOS[cod];
+ if(conMun)d.append(el('strong',null,m.nombre),el('br'),document.createTextNode(m.provincia||''),el('br'));
+ else d.append(el('strong',null,e.espacio),el('br'),document.createTextNode(e.figura+(e.tipo?' ('+e.tipo+')':'')),el('br'));
+ d.append(document.createTextNode(fmt(e.pct_municipio)+' % del municipio · '+fmt(e.solape_ha)+' ha'));
+ const t=etq(cod,e);if(t){d.append(el('br'),el('span',t[1],t[0]))}return d;
+}
+function ley(a){$ley.innerHTML='';a.forEach(([c,t,b])=>{const s=el('span'),i=el('i');if(b){i.style.border='2px solid '+c}else i.style.background=c;s.append(i,t);$ley.append(s)})}
+function dibujarMun(){
+ if(!mostrarMapa())return;
+ const g=GEO[actual];if(!g||!g.mun){$mb.hidden=true;return}
+ const lm=L.geoJSON(g.mun,{style:{color:'#111',weight:3,fill:false},interactive:false}).addTo(grp);
+ const fig=new Set();let hayR=false;
+ (g.esp||[]).forEach(e=>{if(!e.geom||!vis(actual,e))return;
+  const rn=pend(actual,e),c=rn?'#d62828':col(e.figura);
+  const l=L.geoJSON(e.geom,{style:{color:c,weight:rn?2:1.5,fillColor:c,fillOpacity:rn?.15:.4,dashArray:rn?'5 4':null}}).bindPopup(()=>pop(e,actual,false)).addTo(grp);
+  items.push({e,l,rn,color:c,key:keyOf(e),on:true});if(rn)hayR=true;else fig.add(e.figura)});
+ panel();
+ ley([['#111','Límite municipal',1],...[...fig].sort().map(f=>[col(f),f]),...(hayR?[['#d62828','Solape descartado (ruido)',1]]:[])]);
+ map.invalidateSize();map.fitBounds(lm.getBounds(),{padding:[10,10]});
+}
+function dibujarEsp(ms){
+ if(!mostrarMapa())return;$cap.innerHTML='';$('capDet').hidden=true;
+ const c=col(espSel.figura);
+ ms.forEach(m=>{const g=GEO[m.cod];if(!g)return;
+  if(g.mun)L.geoJSON(g.mun,{style:{color:'#111',weight:1.2,fill:false},interactive:false}).addTo(grp);
+  (g.esp||[]).forEach(e=>{if(!e.geom||norm(e.figura)+'||'+norm(e.espacio)!==espSel.key||!vis(m.cod,e))return;
+   L.geoJSON(e.geom,{style:{color:c,weight:1.5,fillColor:c,fillOpacity:.4}}).bindPopup(()=>pop(e,m.cod,true)).addTo(grp)})});
+ ley([['#111','Límites municipales',1],[c,espSel.espacio]]);
+ map.invalidateSize();const b=grp.getBounds();if(b.isValid())map.fitBounds(b,{padding:[10,10]});
+}
+const tog=(it,on)=>{it.on=on;on?grp.addLayer(it.l):grp.removeLayer(it.l)};
+function panel(){
+ $cap.innerHTML='';$('capDet').hidden=!items.length;const gr={};
+ items.forEach(it=>{const n=it.rn?'Solapes descartados (ruido)':it.e.figura;(gr[n]=gr[n]||[]).push(it)});
+ Object.keys(gr).sort().forEach(n=>{
+  const b=el('div','pg'),cl=el('label','pcab'),cg=el('input');cg.type='checkbox';cg.checked=gr[n].every(i=>i.on);cl.append(cg,' '+n);b.append(cl);
+  cg.onchange=()=>{gr[n].forEach(i=>tog(i,cg.checked));panel()};
+  gr[n].sort((a,b)=>b.e.pct_municipio-a.e.pct_municipio).forEach(it=>{
+   const f=el('label','pit'),c=el('input'),sw=el('i');c.type='checkbox';c.checked=it.on;c.onchange=()=>{tog(it,c.checked);cg.checked=gr[n].every(i=>i.on)};
+   sw.style.background=it.color;f.append(c,sw,it.e.espacio+(it.e.tipo?' ('+it.e.tipo+')':''));b.append(f)});
+  $cap.append(b)});
+}
+function enfocar(key){
+ const it=items.find(i=>i.key===key);if(!it||!geoOk)return;
+ if(!it.on){tog(it,true);panel()}
+ $mb.scrollIntoView({behavior:'smooth',block:'start'});
+ setTimeout(()=>{try{map.invalidateSize();const b=it.l.getBounds();map.fitBounds(b,{maxZoom:17,padding:[20,20]});it.l.openPopup(b.getCenter())}catch(e){}},350);
+}
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)
+ navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{$('off').textContent='Disponible sin conexión (la cartografía de fondo requiere conexión).'}).catch(()=>{});
+})();
+</script></body></html>
