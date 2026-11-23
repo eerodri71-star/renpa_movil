@@ -1,49 +1,56 @@
-RENPA móvil (PWA, solo consulta)
-1. Sube esta carpeta completa a un alojamiento HTTPS (la PWA no funciona desde carpeta de red ni file://).
-2. Abre la URL en el móvil: Android/Chrome -> "Instalar aplicación"; iOS/Safari -> Compartir -> "Añadir a pantalla de inicio".
-3. La primera carga descarga ~13 MB; después funciona sin conexión (salvo el mapa de fondo).
-Actualizar correcciones: sustituye data/RENPA_exclusiones.js y data/RENPA_solapes_confirmados.js (se recogen solos al haber conexión).
-Actualizar datos/cartografía: sustituye data/RENPA_datos.js y data/RENPA_geo.js y cambia V en sw.js.
+# RENPA — publicación compartida de correcciones (v3)
 
-RENPA MÓVIL — PAQUETE LISTO PARA PUBLICAR
+## Qué hay en esta entrega
 
-QUÉ CONTIENE
-Esta carpeta contiene la aplicación web instalable (PWA) de consulta de la RENPA, con una pantalla inicial que guía al usuario para instalarla:
-- index.html: aplicación.
-- manifest.webmanifest: identidad e instalación en pantalla de inicio.
-- sw.js: caché y funcionamiento sin conexión.
-- data/: datos, correcciones y cartografía.
-- lib/: Leaflet y sus estilos.
-- iconos e imagen de cabecera.
+- `01_ADMIN_PRIVADA`: para la carpeta compartida de AMAYA. NO publicar en GitHub Pages. Conserva historial interno, nombres y motivos.
+- `02_WEB_PUBLICA`: para un repositorio GitHub Pages público, solo consultas.
+- `03_APP_MOVIL`: para sustituir el contenido del repositorio `renpa_movil`, conservando la PWA y sus iconos.
+- `04_DATOS_PUBLICOS_GITHUB`: repositorio independiente `renpa_datos` con **un solo archivo**, `correcciones.json`.
 
-IMPORTANTE
-La aplicación necesita publicarse en una dirección HTTPS para poder instalarse.
-No funciona correctamente abriendo index.html directamente desde el móvil ni desde file://.
-El mapa y los datos/cartografía de la aplicación se guardan para consulta sin conexión tras la primera carga.
-El mapa de fondo satélite necesita conexión a Internet.
+## Paso 1. Crear el repositorio común
 
-INSTALAR EN ANDROID
-1. Abrir el enlace con Chrome.
-2. Abrir el menú ⋮ y elegir «Instalar aplicación» o «Añadir a pantalla de inicio».
-3. Confirmar. Aparecerá el icono RENPA entre las aplicaciones.
+En GitHub crea un repositorio **público** llamado `renpa_datos`. Sube `04_DATOS_PUBLICOS_GITHUB/correcciones.json`. En Settings > Pages, publica desde la rama principal y la carpeta raíz. Comprueba que abre:
 
-INSTALAR EN IPHONE
-1. Abrir el enlace con Safari (no desde el navegador integrado de WhatsApp).
-2. Pulsar Compartir.
-3. Elegir «Añadir a pantalla de inicio».
-4. Confirmar «Añadir». Aparecerá el icono RENPA en la pantalla de inicio.
+https://eerodri71-star.github.io/renpa_datos/correcciones.json
 
-PRIMER USO Y MODO SIN CONEXIÓN
-- La primera vez, abrir la aplicación con conexión y esperar a que termine de cargar la cartografía.
-- Después se puede activar el modo avión y comprobar la consulta de datos y geometrías.
-- El fondo satélite no estará disponible sin conexión.
+Si usas otra cuenta o nombre de repositorio, cambia la URL en `config-publicacion.js` de la web y el móvil antes de publicarlos.
 
-ACTUALIZACIONES
-- Para actualizar datos o geometrías, sustituir los archivos correspondientes en data/ y cambiar la constante V de sw.js (por ejemplo, renpa-movil-v2).
-- Para actualizar la aplicación publicada en Netlify, volver a arrastrar la carpeta completa a Netlify Drop.
-- Tras una actualización, cerrar y volver a abrir la aplicación. Si un dispositivo conserva la versión anterior, abrir el enlace con conexión y recargar.
+## Paso 2. Publicar la web
 
-NOTAS
-- Esta aplicación es de consulta; no es una aplicación nativa distribuida por Google Play o App Store.
-- La instalación mediante PWA funciona en Android y iPhone, pero los pasos y los textos de menú pueden variar según el navegador y la versión del sistema.
-- El mapa base satélite utiliza el servicio de teselas de Esri y, por tanto, requiere conexión y está sujeto a sus condiciones de uso.
+Crea un repositorio público `renpa_web` y sube el **contenido** de `02_WEB_PUBLICA` (no la carpeta contenedora). Activa GitHub Pages en la rama principal y raíz. URL esperada:
+
+https://eerodri71-star.github.io/renpa_web/
+
+## Paso 3. Actualizar el móvil
+
+En el repositorio existente `renpa_movil`, sustituye/actualiza los archivos con el contenido de `03_APP_MOVIL`, sin cambiar la URL pública. La PWA mantiene datos y geometrías locales y obtiene las correcciones desde el repositorio común. Puede tardar una recarga adicional en aplicar la nueva versión del service worker.
+
+## Paso 4. Correcciones posteriores
+
+1. Desde `01_ADMIN_PRIVADA/admin.html` con Live Server, abre y modifica los JS **reales de la carpeta compartida**. Guarda las correcciones.
+2. Pulsa «Preparar correcciones.json para GitHub». Selecciona **primero** `RENPA_exclusiones.js` y **después** `RENPA_solapes_confirmados.js` de la carpeta compartida.
+3. Se descarga `correcciones.json`, que contiene exclusivamente las claves de las relaciones actualmente excluidas y confirmadas, **sin usuarios, fechas, motivos ni historial**.
+4. En GitHub, en el repositorio `renpa_datos`, reemplaza `correcciones.json` por el nuevo archivo y confirma el cambio. La publicación suele tardar unos minutos.
+5. Web y móvil consultan esa URL cuando se abren. Si falla Internet, usan la última copia pública guardada o la incluida inicialmente.
+
+No es sincronización automática desde la carpeta compartida: **hay que subir un solo archivo a GitHub** cuando se quieran publicar correcciones. Una vez publicado, las dos aplicaciones se actualizan sin subir sus códigos.
+
+## Seguridad y privacidad
+
+- **Nunca publiques** `01_ADMIN_PRIVADA`, `RENPA_exclusiones.js` o `RENPA_solapes_confirmados.js` originales: contienen datos internos.
+- No publiques la carpeta compartida ni enlaces a ella. Los permisos de acceso a la carpeta son la barrera de acceso interna, no una autenticación web.
+- GitHub Pages es público: `correcciones.json` y las claves de relación son accesibles para cualquiera.
+- La publicación requiere acceso a GitHub; no se sube automáticamente desde la red corporativa.
+- La caché offline es por dispositivo/navegador. La primera carga necesita conexión. En modo sin conexión no se reciben cambios nuevos.
+- La clasificación de solapes se calcula según `pct_municipio` en ambas versiones públicas; no según `pct_espacio`.
+- Los archivos `RENPA_datos.js` y `RENPA_geo.js` no se actualizan con este mecanismo; si cambian, habrá que actualizar ambas aplicaciones o ampliar la sincronización.
+
+## Comprobación rápida
+
+1. Comprueba que `correcciones.json` se abre desde su URL pública.
+2. Abre web y móvil conectados a Internet; debe aparecer «Correcciones: actualizadas desde GitHub».
+3. Prueba un municipio con una relación excluida y otra confirmada.
+4. Desconecta Internet y recarga la PWA previamente instalada: debe usar la copia guardada.
+5. Para comprobar el circuito, realiza una corrección de prueba en el entorno interno, exporta, publica, comprueba y restaura si procede.
+
+Esta entrega no ha sido probada en el Edge corporativo ni desplegada en tu cuenta de GitHub; hay que hacer esas verificaciones antes de considerarla lista para producción.
