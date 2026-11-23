@@ -156,7 +156,7 @@ function init(){
  EX=mk(window.INCIDENCIAS_RENPA);CF=mk(window.SOLAPES_CONFIRMADOS_RENPA);
  lista=Object.entries(DATOS).map(([cod,m])=>({cod,nombre:m.nombre,provincia:m.provincia,n:norm(m.nombre)})).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
  const cat=new Map();
- Object.entries(DATOS).forEach(([cod,m])=>m.espacios.forEach(e=>{const k=norm(e.figura)+'||'+norm(e.espacio);if(!cat.has(k))cat.set(k,{key:k,figura:e.figura,espacio:e.espacio,nombre:e.espacio,n:norm(e.espacio),cods:new Set()});cat.get(k).cods.add(cod)}));
+ Object.entries(DATOS).forEach(([cod,m])=>m.espacios.forEach(e=>{const k=norm(e.figura)+'||'+norm(e.espacio)+'||'+norm(e.tipo||'');if(!cat.has(k))cat.set(k,{key:k,figura:e.figura,espacio:e.espacio,tipo:e.tipo||'',nombre:e.espacio,n:norm(e.espacio),cods:new Set()});cat.get(k).cods.add(cod)}));
  listaEsp=[...cat.values()].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es')||a.figura.localeCompare(b.figura,'es'));
  $('carga').hidden=true;$('app').hidden=false;
  const act=(m,a)=>[...m.values()].filter(x=>x===a).length;
@@ -177,7 +177,7 @@ function sugerir(){
  const r=(modo==='mun'?lista:listaEsp).filter(x=>x.n.includes(t)||(modo==='esp'&&norm(x.figura).includes(t))).sort((a,b)=>(b.n.startsWith(t)-a.n.startsWith(t))||a.nombre.localeCompare(b.nombre,'es')).slice(0,15);
  r.forEach(x=>{const li=el('li');li.append(el('span',null,x.nombre));
   const av=modo==='mun'&&DATOS[x.cod].espacios.some(e=>!excl(x.cod,e)&&pend(x.cod,e));
-  li.append(el('small',null,modo==='mun'?(av?'⚠ ':'')+(x.provincia||''):x.figura));
+  li.append(el('small',null,modo==='mun'?(av?'⚠ ':'')+(x.provincia||''):x.figura+(x.tipo?' · '+x.tipo:'')));
   li.onclick=()=>modo==='mun'?verMun(x.cod):verEsp(x);$sug.append(li)});
  $sug.hidden=!r.length;
 }
@@ -187,7 +187,7 @@ $q.addEventListener('keydown',e=>{if(e.key==='Enter'){const l=$sug.firstChild;if
 document.addEventListener('click',e=>{if(!e.target.closest('.bus'))$sug.hidden=true});
 
 function verMun(cod){modo='mun';setTab();actual=cod;espSel=null;$q.value=DATOS[cod].nombre;$sug.hidden=true;$q.blur();mostrarMun();window.scrollTo({top:0,behavior:'smooth'})}
-function verEsp(x){modo='esp';setTab();espSel=x;actual=null;$q.value=x.espacio+' · '+x.figura;$sug.hidden=true;$q.blur();mostrarEsp()}
+function verEsp(x){modo='esp';setTab();espSel=x;actual=null;$q.value=x.espacio+' · '+x.figura+(x.tipo?' · '+x.tipo:'');$sug.hidden=true;$q.blur();mostrarEsp()}
 
 function tarjeta(cod,e){
  const c=el('div','esp'+(pend(cod,e)?' rui':'')),f=el('div','fila'),iz=el('div');
@@ -213,13 +213,13 @@ function mostrarMun(){
 }
 function mostrarEsp(){
  $cab.innerHTML='';$lis.innerHTML='';const x=espSel;
- const ms=[...x.cods].map(cod=>{const m=DATOS[cod],rel=m.espacios.filter(e=>norm(e.figura)+'||'+norm(e.espacio)===x.key&&vis(cod,e));return rel.length?{cod,nombre:m.nombre,provincia:m.provincia,rel}:null}).filter(Boolean).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
- const h=el('div','mun');h.append(el('h2',null,x.espacio),el('span',null,x.figura));
+ const ms=[...x.cods].map(cod=>{const m=DATOS[cod],rel=m.espacios.filter(e=>norm(e.figura)+'||'+norm(e.espacio)+'||'+norm(e.tipo||'')===x.key&&vis(cod,e));return rel.length?{cod,nombre:m.nombre,provincia:m.provincia,rel}:null}).filter(Boolean).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ const h=el('div','mun');h.append(el('h2',null,x.espacio),el('span',null,x.figura+(x.tipo?' · '+x.tipo:'')));
  $cab.append(h,el('p','res',ms.length+(ms.length===1?' municipio relacionado':' municipios relacionados')));
  if(!ms.length)$cab.append(el('div','aviso','No hay municipios con relaciones activas para este espacio según los filtros actuales.'));
  dibujarEsp(ms);
  const lw=el('div','munlist');
- ms.forEach(m=>{const b=el('button','mc');b.append(el('strong',null,m.nombre),el('small',null,m.provincia||''),el('span','det',m.rel.map(e=>fmt(e.pct_municipio)+' % ('+(e.tipo||e.figura)+')').join(' · ')));b.onclick=()=>verMun(m.cod);lw.append(b)});
+ ms.forEach(m=>{const b=el('button','mc');b.append(el('strong',null,m.nombre),el('small',null,m.provincia||''),el('span','det',m.rel.map(e=>fmt(e.pct_municipio)+' %').join(' · ')));b.onclick=()=>verMun(m.cod);lw.append(b)});
  $lis.append(el('h3',null,'Municipios incluidos'),lw);
 }
 
@@ -254,7 +254,7 @@ function dibujarEsp(ms){
  const c=col(espSel.figura);
  ms.forEach(m=>{const g=GEO[m.cod];if(!g)return;
   if(g.mun)L.geoJSON(g.mun,{style:{color:'#111',weight:1.2,fill:false},interactive:false}).addTo(grp);
-  (g.esp||[]).forEach(e=>{if(!e.geom||norm(e.figura)+'||'+norm(e.espacio)!==espSel.key||!vis(m.cod,e))return;
+  (g.esp||[]).forEach(e=>{if(!e.geom||norm(e.figura)+'||'+norm(e.espacio)+'||'+norm(e.tipo||'')!==espSel.key||!vis(m.cod,e))return;
    L.geoJSON(e.geom,{style:{color:c,weight:1.5,fillColor:c,fillOpacity:.4}}).bindPopup(()=>pop(e,m.cod,true)).addTo(grp)})});
  ley([['#111','Límites municipales',1],[c,espSel.espacio]]);
  map.invalidateSize();const b=grp.getBounds();if(b.isValid())map.fitBounds(b,{padding:[10,10]});

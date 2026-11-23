@@ -1,5 +1,5 @@
 // Cambia V cada vez que sustituyas RENPA_datos.js, RENPA_geo.js o cualquier archivo de la app.
-const V='renpa-movil-v5-datos-compartidos';
+const V='renpa-movil-v6-consulta-inversa';
 const CORE=['./','index.html','manifest.webmanifest','cabecera.png','icon-180.png','icon-192.png','icon-512.png','lib/leaflet.js','lib/leaflet.css','data/RENPA_datos.js','data/RENPA_geo.js','config-publicacion.js','correcciones-iniciales.js','cargar-correcciones.js'];
 const REG=['index.html','config-publicacion.js','correcciones-iniciales.js','cargar-correcciones.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
