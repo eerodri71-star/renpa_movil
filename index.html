@@ -22,6 +22,10 @@
 <meta name="twitter:image" content="https://eerodri71-star.github.io/renpa_movil/icon-512.png">
 <title>RENPA · Consulta territorial</title>
 <link rel="stylesheet" href="css/styles.css">
+<style>
+.install-panel{margin:18px 0 22px;padding:16px 18px;border:1px solid #b9d3bf;border-radius:12px;background:#edf5ee;color:#203c27;display:none}
+.install-panel.visible{display:block}.install-panel h2{font-size:1.05rem;margin:0 0 7px}.install-panel p{margin:5px 0 12px;line-height:1.5}.install-panel button{background:#2f6b3a;color:white;border:0;border-radius:8px;padding:10px 15px;font:inherit;font-weight:600;cursor:pointer}.install-panel .install-close{background:transparent;color:#315b39;border:1px solid #a7c7ac;margin-left:8px}.install-panel .install-help{font-size:.91rem}.install-panel ol{margin:8px 0 12px;padding-left:22px;line-height:1.6}
+</style>
 </head>
 <body>
 
@@ -30,6 +34,13 @@
 <main><div class="section-tag">ANDALUCÍA · ESPACIOS NATURALES PROTEGIDOS</div>
 <h1>Explora los espacios naturales protegidos de Andalucía</h1>
 <p class="sub">Localiza municipios y espacios naturales, explora su distribución en el mapa y consulta las superficies y porcentajes de ocupación.</p>
+<section id="installPanel" class="install-panel" aria-label="Instalar aplicación RENPA">
+<h2>📲 Lleva RENPA en tu móvil</h2>
+<div id="installAndroid" hidden><p>Instala la aplicación para abrirla desde tu pantalla de inicio.</p><button id="installAction" type="button">Instalar aplicación</button></div>
+<div id="installIos" hidden><p>En iPhone o iPad, la instalación se realiza desde el navegador:</p><ol><li>Abre este enlace en <strong>Safari</strong>.</li><li>Pulsa <strong>Compartir</strong> (icono de cuadrado con flecha hacia arriba).</li><li>Selecciona <strong>Añadir a pantalla de inicio</strong> y confirma con <strong>Añadir</strong>.</li></ol><p class="install-help">Si no aparece esa opción, desplázate por el menú de compartir o utiliza «Editar acciones».</p></div>
+<div id="installOther" hidden><p>En Android, abre el menú del navegador y elige «Instalar aplicación» o «Añadir a pantalla de inicio». En iPhone, utiliza Safari → Compartir → Añadir a pantalla de inicio.</p></div>
+<button id="installDismiss" class="install-close" type="button">Ahora no</button>
+</section>
 <div class="info-strip"><div><strong>Consulta territorial</strong><span>Municipios y espacios protegidos</span></div><div><strong>Información geográfica</strong><span>Superficies, porcentajes y cartografía</span></div><div><strong>Datos revisados</strong><span>Exclusiones y solapes confirmados aplicados</span></div></div>
 <div class="modos"><button type="button" class="modoBtn activo" id="tabMunicipio">Buscar por municipio</button><button type="button" class="modoBtn" id="tabEspacio">Buscar por espacio natural</button></div>
 <div id="busquedaMunicipio">
@@ -57,5 +68,28 @@ window.RENPA_CARGAR_CORRECCIONES().catch(console.error).finally(function(){
 });
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.warn));}</script>
+<script>
+(function(){
+ const panel=document.getElementById('installPanel');
+ const android=document.getElementById('installAndroid');
+ const ios=document.getElementById('installIos');
+ const other=document.getElementById('installOther');
+ const btn=document.getElementById('installAction');
+ const dismiss=document.getElementById('installDismiss');
+ const ua=navigator.userAgent||'';
+ const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const isAndroid=/Android/i.test(ua);
+ const installed=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+ let promptEvent=null;
+ const hidden=()=>{try{return sessionStorage.getItem('renpa-install-dismissed-v6')==='1'}catch(e){return false}};
+ function show(){if(installed()||hidden()){panel.classList.remove('visible');return}android.hidden=!isAndroid;ios.hidden=!isIOS;other.hidden=isAndroid||isIOS;panel.classList.add('visible');}
+ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();promptEvent=e;show();});
+ btn.addEventListener('click',async function(){if(promptEvent){const p=promptEvent;promptEvent=null;p.prompt();try{await p.userChoice}catch(e){}if(installed())panel.classList.remove('visible');}else{android.innerHTML='<p>Abre el menú ⋮ de Chrome y selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>. Si no aparece, comprueba que estás usando Chrome y que la página ha terminado de cargar.</p>';}});
+ dismiss.addEventListener('click',function(){try{sessionStorage.setItem('renpa-install-dismissed-v6','1')}catch(e){}panel.classList.remove('visible');});
+ window.addEventListener('appinstalled',()=>panel.classList.remove('visible'));
+ window.addEventListener('pageshow',show);
+ show();
+})();
+</script>
 </body>
 </html>
