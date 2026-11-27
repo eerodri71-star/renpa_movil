@@ -1,4 +1,4 @@
-const CACHE='renpa-movil-mapa-v13';
+const CACHE='renpa-movil-mapa-v15';
 const CORE=['./','index.html','css/styles.css','js/public.js','js/tutorial.js','manifest.webmanifest','assets/cabecera.png','icon-180.png','icon-192.png','icon-512.png','data/RENPA_datos.js','data/RENPA_geo.js','data/RENPA_espacios_completos.js','config-publicacion.js','correcciones-iniciales.js','cargar-correcciones.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('renpa-movil-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
