@@ -1,5 +1,5 @@
-const CACHE='renpa-movil-mapa-v34';
-const CORE=['index.html','css/styles.css?v=34','js/public.js?v=34','js/tutorial.js?v=34','manifest.webmanifest','assets/cabecera.png','icon-180.png','icon-192.png','icon-512.png','data/estadisticas.js?v=34','data/RENPA_datos.js','data/RENPA_geo.js','data/RENPA_espacios_completos.js','config-publicacion.js','correcciones-iniciales.js?v=34','cargar-correcciones.js?v=34'];
+const CACHE='renpa-movil-mapa-v36';
+const CORE=['index.html','css/styles.css?v=36','js/public.js?v=36','js/tutorial.js?v=36','manifest.webmanifest','assets/cabecera.png','icon-180.png','icon-192.png','icon-512.png','data/estadisticas.js?v=36','data/RENPA_datos.js','data/RENPA_geo.js','data/RENPA_espacios_completos.js','config-publicacion.js','correcciones-iniciales.js?v=36','cargar-correcciones.js?v=36'];
 const absolute=p=>new URL(p,self.registration.scope).href;
 self.addEventListener('install',e=>e.waitUntil((async()=>{
  const c=await caches.open(CACHE);

@@ -88,3 +88,20 @@ footer{max-width:1160px;border-top:1px solid #dbe6dd;padding:23px 20px 45px}
 
 /* Resumen territorial dinámico */
 .stats3{display:grid!important;gap:12px;padding:16px;background:#fff;border:1px solid #c8dbca;border-radius:14px;margin:12px 0 18px}.stats3 h3{color:#215a3c;font-size:1.1rem;margin:0}.stats3 h4{color:#215a3c;margin:4px 0 0;font-size:.95rem}.stats34datos{display:grid;gap:8px}.stats34datos>div{display:grid;gap:3px;padding:10px;background:#f0f5ef;border-radius:9px}.stats34datos strong{font-size:1.2rem;color:#215a3c}.stats34graph{display:flex;align-items:center;gap:14px}.stats34graph .ring3{flex:0 0 112px}.stats34line{display:flex;justify-content:space-between;gap:8px;font-size:.86rem;font-weight:600}.stats34line span:last-child{white-space:nowrap}.stats34figure .barra{margin:4px 0}.stats34figure small,.stats34nota{color:#526b58}.stats34nota{line-height:1.4} .stats3 button{justify-self:start}
+
+/* 3.5: controles y sugerencias táctiles */
+#extra20{position:relative;z-index:31;flex-shrink:0;border-radius:12px;padding:6px;gap:5px;margin:4px 0;overflow:visible}
+#extra20 .figura33{flex:1 1 155px;min-width:0;max-width:100%;font-size:14px;min-height:36px;padding:7px 30px 7px 10px}
+#extra20 input[type=range]{width:65px;min-width:40px;flex:1 1 55px;max-width:100px;accent-color:#2f6b3a}
+#extra20>span{font-size:11px}#extra20>button{font-size:12px;min-height:34px;padding:6px 8px}
+.prov33 input{font-size:16px;padding:9px 12px;min-height:40px}.provSug33{max-height:min(48dvh,300px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}.provSug33 li{padding:0}#extra20 .provSug33 button{border:0;width:100%;text-align:left;font-size:16px;min-height:40px;padding:9px 12px;background:transparent;color:#215a3c}
+@media(max-width:720px){#visor #ficha{max-height:36dvh}#visor #mapaCont{min-height:0}#visor .mapaControles>span{display:none}#visor #extra20 .figura33{flex:1 1 50%;}#visor #extra20>span{margin-left:auto}#visor #extra20>button{flex:1 1 auto}#visor #extra20 .prov33{flex-basis:100%}}
+
+/* 3.6: toda la ficha municipal permite navegar */
+.municipioEspacio{cursor:pointer;touch-action:pan-y}.municipioEspacio button{min-height:44px;flex:1;text-align:left;touch-action:pan-y}
+#busquedaMunicipio,#busquedaEspacio{position:relative;z-index:40}.buscador,.buscadorEspacio{position:relative;z-index:41}#sugerencias,#sugerenciasEspacio{touch-action:pan-y;overscroll-behavior:contain}
+
+/* 3.6: regreso al menu principal visible y accesible */
+#homeBack:not([hidden]){display:inline-flex;align-items:center;justify-content:center;gap:8px;order:-1;background:#fff;color:#183f2e;border:1px solid #fff;border-radius:12px;padding:10px 16px;font:inherit;font-weight:750;min-height:44px;cursor:pointer;box-shadow:0 2px 8px #10261e30;flex-shrink:0}
+#homeBack:hover{background:#e7f1e9}#homeBack:focus-visible{outline:3px solid #b9e8a8;outline-offset:3px}#homeBack svg{flex-shrink:0}
+@media(max-width:720px){.topbar-inner:has(#homeBack:not([hidden])){gap:8px;padding:5px 8px}.topbar-inner:has(#homeBack:not([hidden])) .top-status{display:none}#homeBack:not([hidden]){min-height:40px;padding:8px 11px;gap:5px;font-size:.95rem}.topbar-inner:has(#homeBack:not([hidden])) .brand{margin-right:auto}}

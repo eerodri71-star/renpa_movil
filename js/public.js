@@ -62,7 +62,21 @@
  };
  const fmt=(n,d=2)=>Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
 
- function cambiarModo(nuevo){
+ function limpiarBusqueda36(){
+   $q.value='';$qEspacio.value='';document.getElementById('qPunto').value='';
+   const prov=extra20.querySelector('.prov33 input');if(prov)prov.value='';
+   $sug.replaceChildren();$sugEspacio.replaceChildren();$sug.style.display='none';$sugEspacio.style.display='none';
+   const ul=extra20.querySelector('.provSug33');if(ul){ul.replaceChildren();ul.hidden=true;}
+   idxActivo=idxEspacio=-1;visibles=[];visiblesEspacio=[];provincia20='';error.textContent='';
+ }
+ function limpiarResultado36(){
+   actual=null;espacioActual=null;punto=null;provincia20='';consultaId++;
+   entradas=[];capaMun=null;limitesExtra=[];municipiosEspacio=[];
+   $res.replaceChildren();$panel.replaceChildren();$leyenda.replaceChildren();cerrarPopup();
+   vistaInicial();
+ }
+ function cambiarModo(nuevo, filtroInicial=''){
+   document.activeElement.blur();limpiarBusqueda36();filtro20=filtroInicial;registrarModo36(nuevo);
    document.getElementById('inicio').hidden=true;document.getElementById('visor').hidden=false;document.getElementById('homeBack').hidden=false;
 
    modo=nuevo; punto=null; consultaId++; document.getElementById('busquedaPunto').hidden=nuevo!=='punto'; document.getElementById('tabPunto').classList.toggle('activo',nuevo==='punto');
@@ -95,7 +109,7 @@
      const li=el('li');
      li.appendChild(el('span',null,x.espacio));
      li.appendChild(el('small',null,x.figura+(x.tipo?' · '+x.tipo:'')));
-     li.addEventListener('mousedown',ev=>{ev.preventDefault();elegirEspacio(x)});
+     li.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')ev.preventDefault();});li.addEventListener('click',()=>elegirEspacio(x));
      $sugEspacio.appendChild(li);
    });
    $sugEspacio.style.display=visiblesEspacio.length?'block':'none';
@@ -103,9 +117,9 @@
 
  function elegirEspacio(x){
    espacioActual=x;
-   $qEspacio.value=x.espacio+' · '+x.figura+(x.tipo?' · '+x.tipo:'');
+   $qEspacio.blur();$qEspacio.value=x.espacio+' · '+x.figura+(x.tipo?' · '+x.tipo:'');
    $sugEspacio.style.display='none';
-   mostrarEspacio();
+   mostrarEspacio();ficha.scrollTop=0;
  }
 
  function mostrarEspacio(){
@@ -148,9 +162,10 @@
      const card=el('div','municipioEspacio');
      const btn=el('button',null,m.nombre);
      btn.type='button';
-     btn.addEventListener('click',()=>{
+     card.addEventListener('click',()=>{
        cambiarModo('municipio');
        elegir({cod:m.cod,nombre:m.nombre,provincia:m.provincia,n:norm(m.nombre)});
+       desplegar(true);ficha.scrollTop=0;requestAnimationFrame(()=>ficha.scrollTop=0);
      });
      card.appendChild(btn);
      card.appendChild(el('small',null,m.provincia||''));
@@ -593,17 +608,17 @@
      const li=el('li');
      li.appendChild(el('span',null,m.nombre));
      li.appendChild(el('small',null,m.provincia));
-     li.addEventListener('mousedown',e=>{e.preventDefault();elegir(m)});
+     li.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')ev.preventDefault();});li.addEventListener('click',()=>elegir(m));
      $sug.appendChild(li);
    });
    $sug.style.display=visibles.length?'block':'none';
  }
 
  function elegir(m){
-   $q.value=m.nombre;
+   $q.blur();$q.value=m.nombre;
    $sug.style.display='none';
    actual=m.cod;
-   mostrar();
+   mostrar();ficha.scrollTop=0;
  }
 
  function mostrar(){
@@ -686,9 +701,9 @@
  document.getElementById('zoomMenos').onclick=()=>acercar(zoom-1);
  document.getElementById('zoomInicio').onclick=()=>{if(encuadre){zoom=encuadre.zoom;centro={...encuadre.centro};cerrarPopup();pintar();}};
 
- window.addEventListener('resize',()=>{
-   ancho=$mapa.clientWidth;alto=$mapa.clientHeight;dibujarGeometrias();
- });
+ function reajustar35(){const w=$mapa.clientWidth,h=$mapa.clientHeight;if(!w||!h||(w===ancho&&h===alto))return;ancho=w;alto=h;pintar();}
+ window.addEventListener('resize',reajustar35);
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(reajustar35).observe($mapa);
 
  $tabMunicipio.addEventListener('click',()=>cambiarModo('municipio'));
  $tabEspacio.addEventListener('click',()=>cambiarModo('espacio'));
@@ -699,8 +714,9 @@
    $mapaCont.style.display='block';
    sugerirEspacios();
  });
- $qEspacio.addEventListener('focus',sugerirEspacios);
- $qEspacio.addEventListener('blur',()=>setTimeout(()=>$sugEspacio.style.display='none',100));
+ $qEspacio.addEventListener('focus',()=>{$qEspacio.value='';limpiarResultado36();sugerirEspacios();});
+ $qEspacio.addEventListener('click',()=>{if(espacioActual){$qEspacio.value='';limpiarResultado36();sugerirEspacios();}});
+ $qEspacio.addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==$qEspacio)$sugEspacio.style.display='none';},350));
  $qEspacio.addEventListener('keydown',e=>{
    const items=$sugEspacio.children;
    if(e.key==='ArrowDown'&&items.length)idxEspacio=(idxEspacio+1)%items.length;
@@ -720,8 +736,9 @@
    $mapaCont.style.display='block';
    sugerir();
  });
- $q.addEventListener('focus',sugerir);
- $q.addEventListener('blur',()=>setTimeout(()=>$sug.style.display='none',100));
+ $q.addEventListener('focus',()=>{$q.value='';limpiarResultado36();sugerir();});
+ $q.addEventListener('click',()=>{if(actual){$q.value='';limpiarResultado36();sugerir();}});
+ $q.addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==$q)$sug.style.display='none';},350));
  $q.addEventListener('keydown',e=>{
    const items=$sug.children;
    if(e.key==='ArrowDown'&&items.length)idxActivo=(idxActivo+1)%items.length;
@@ -736,13 +753,16 @@
  });
 
 
- function vistaInicial(){ $mapaCont.style.display='block'; $panel.innerHTML='';$leyenda.innerHTML=''; requestAnimationFrame(()=>{if(actual||espacioActual||punto||modo==='explorar'||modo==='provincia')return;ancho=$mapa.clientWidth;alto=$mapa.clientHeight;zoom=7;centro=merc(-4.6,37.5);encuadre={zoom,centro:{...centro}};dibujarGeometrias();}); }
+ function vistaInicial(){ $mapaCont.style.display='block'; $panel.innerHTML='';$leyenda.innerHTML=''; requestAnimationFrame(()=>{if(actual||espacioActual||punto||modo==='explorar'||(modo==='provincia'&&provincia20))return;ancho=$mapa.clientWidth;alto=$mapa.clientHeight;zoom=7;centro=merc(-4.6,37.5);encuadre={zoom,centro:{...centro}};dibujarGeometrias();}); }
  const ficha=document.getElementById('ficha'), abrir=document.getElementById('abrirFicha'), contenido=document.getElementById('contenidoFicha');
  contenido.append($panel,$leyenda); function desplegar(on){ficha.classList.toggle('abierta',on);abrir.setAttribute('aria-expanded',String(on));abrir.textContent=on?'Resultados ⌄':'Resultados ⌃';} abrir.onclick=()=>desplegar(!ficha.classList.contains('abierta'));
- new MutationObserver(()=>{if(modo==='explorar')desplegar(false);else if($res.children.length)desplegar(true);else desplegar(false);}).observe($res,{childList:true});
+ new MutationObserver(()=>{if(modo==='explorar')desplegar(!!filtro20);else if(modo==='provincia'&&!provincia20)desplegar(false);else if($res.children.length)desplegar(true);else desplegar(false);}).observe($res,{childList:true});
  document.getElementById('tabPunto').onclick=()=>cambiarModo('punto');
  function parsePunto(t){t=t.trim();let m; m=t.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)\s*$/)||t.match(/^\s*(-?\d+,\d+)\s*;\s*(-?\d+,\d+)\s*$/);if(!m)throw Error('Introduce latitud, longitud en grados decimales.');let lat=Number(m[1].replace(',','.')),lon=Number(m[2].replace(',','.'));if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)throw Error('Coordenadas fuera de rango.');return [lon,lat];}
  const error=document.getElementById('errorPunto');
+ const qPunto36=document.getElementById('qPunto');
+ qPunto36.addEventListener('focus',()=>{qPunto36.value='';limpiarResultado36();});
+ qPunto36.addEventListener('click',()=>{if(punto){qPunto36.value='';limpiarResultado36();}});
  document.getElementById('formPunto').onsubmit=e=>{e.preventDefault();try{consultarPunto(...parsePunto(document.getElementById('qPunto').value));}catch(e){error.textContent=e.message;}};
  async function consultarPunto(lon,lat){if(!Number.isFinite(lon)||!Number.isFinite(lat))return;const id=++consultaId;error.textContent='Consultando cartografía…';try{const datosPunto=window.RENPA_ESPACIOS_COMPLETOS;if(!datosPunto||!Object.keys(datosPunto).length)throw Error('Cartografía no disponible');if(id!==consultaId||modo!=='punto')return;punto=[lon,lat];entradas=[];capaMun=null;limitesExtra=[];$panel.innerHTML='';$leyenda.innerHTML='';$res.innerHTML='';const hits=Object.entries(datosPunto).filter(([k,g])=>acepta20(catalogoEspacios.get(k))&&contiene(g,punto));$res.append(el('h2',null,hits.length?'Figuras de protección en el punto':'Sin coincidencias en las capas consultadas'),el('p',null,lat.toFixed(6)+', '+lon.toFixed(6)));for(const [key,g] of hits){const x=catalogoEspacios.get(key);const card=el('div','espacio');card.append(el('strong',null,x.espacio),el('p',null,x.figura+' · '+x.tipo));const b=el('button',null,'Ver espacio completo');b.onclick=()=>{cambiarModo('espacio');elegirEspacio(x);};card.append(b);$res.append(card);entradas.push({e:{geom:window.RENPA_ESPACIOS_COMPLETOS[key],espacio:x.espacio,figura:x.figura,tipo:x.tipo},activa:true,color:colorDe(x.tipo),key});}$res.append(el('p','detalle','Consulta orientativa sobre geometría simplificada.'));error.textContent='';document.activeElement.blur();ancho=$mapa.clientWidth;alto=$mapa.clientHeight;zoom=13;centro=merc(lon,lat);encuadre={zoom,centro:{...centro}};dibujarGeometrias();}catch(e){if(id===consultaId)error.textContent='No se pudo realizar la consulta. Comprueba que la cartografía completa está disponible.';}}
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(ancho&&alto)dibujarGeometrias();}).observe($mapa);
@@ -754,10 +774,10 @@
  function filas20(){return Object.entries(DATOS).flatMap(([cod,m])=>m.espacios.filter(e=>visiblePublico(cod,e)&&acepta20(e)).map(e=>({cod,m,e}))).filter(r=>modo==='municipio'?r.cod===actual:modo==='espacio'?espacioActual&&claveRelacion(r.cod,r.e).slice(r.cod.length+2)===espacioActual.key:modo==='provincia'?r.m.provincia===provincia20:modo==='punto'?false:true)}
  function exportar20(){let rows=[['Provincia','Municipio','Código','Espacio','Grupo','Figura','Hectáreas','% municipio','% espacio'],...filas20().map(({cod,m,e})=>[m.provincia,m.nombre,cod,e.espacio,e.figura,e.tipo,e.solape_ha,e.pct_municipio,e.pct_espacio])];if(modo==='punto')rows=[['Latitud','Longitud','Espacio','Figura'],...entradas.filter(x=>acepta20(x.e)).map(x=>[punto[1],punto[0],x.e.espacio,x.e.tipo])];if(modo==='provincia'){rows[0].push('% provincia (relación municipal)');for(let i=1;i<rows.length;i++)rows[i].push(100*Number(rows[i][6])/areasProvincia21[provincia20]);}const b=new Blob(['\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""').replace(/^(?=[=+@-][^0-9])/g,"'")+'"').join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=el('a');a.href=URL.createObjectURL(b);a.download=nombreCSV21();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
  function consulta20(){return {modo,cod:actual,key:espacioActual?.key,punto,provincia:provincia20,filtro:filtro20}}
- function abrir20(q){filtro20=q.filtro||'';cambiarModo(q.modo);if(q.modo==='municipio'&&DATOS[q.cod])elegir({cod:q.cod,nombre:DATOS[q.cod].nombre});if(q.modo==='espacio'&&catalogoEspacios.has(q.key))elegirEspacio(catalogoEspacios.get(q.key));if(q.modo==='punto'&&q.punto)consultarPunto(...q.punto);if(q.modo==='provincia'){provincia20=q.provincia;const p=extra20.querySelector('.prov33 input');if(p)p.value=provincia20;territorio20()}}
+ function abrir20(q){cambiarModo(q.modo,q.filtro||'');if(q.modo==='municipio'&&DATOS[q.cod])elegir({cod:q.cod,nombre:DATOS[q.cod].nombre});if(q.modo==='espacio'&&catalogoEspacios.has(q.key))elegirEspacio(catalogoEspacios.get(q.key));if(q.modo==='punto'&&q.punto)consultarPunto(...q.punto);if(q.modo==='provincia'){provincia20=q.provincia;const p=extra20.querySelector('.prov33 input');if(p)p.value=provincia20;territorio20()}}
  function favoritos20(){try{return JSON.parse(localStorage.getItem('renpa_favoritos20')||'[]')}catch(e){return []}}
  function pintarFav20(){const box=document.getElementById('favoritos20');if(!box)return;box.replaceChildren(el('strong',null,'Mis favoritos'));favoritos20().forEach((q,i)=>{const b=el('button',null,q.nombre);b.onclick=()=>abrir20(q);const x=el('button',null,'×');x.setAttribute('aria-label','Eliminar '+q.nombre);x.onclick=()=>{const a=favoritos20();a.splice(i,1);localStorage.setItem('renpa_favoritos20',JSON.stringify(a));pintarFav20()};box.append(b,x)})}
- function territorio20(){const rows=filas20(), keys=new Set(rows.map(r=>claveRelacion(r.cod,r.e).slice(r.cod.length+2)));if(modo==='explorar')for(const k of catalogoEspacios.keys())keys.add(k);entradas=[...keys].map(key=>{const x=catalogoEspacios.get(key);return {key,e:{...x,geom:window.RENPA_ESPACIOS_COMPLETOS[key]},activa:true,color:colorDe(x.tipo)}}).filter(x=>x.e.geom&&acepta20(x.e));$res.replaceChildren(el('h2',null,modo==='provincia'?provincia20:'Explorar Andalucía'));if(modo==='provincia')$res.append(el('p','detalle','Superficie provincial: '+areasProvincia21[provincia20].toLocaleString('es-ES',{maximumFractionDigits:2})+' ha. Porcentajes calculados con las relaciones municipales admitidas; no sumar entre figuras.'));if(modo==='explorar')$res.append(el('p','detalle','Selecciona una figura de protección para filtrar el mapa. Pulsa sobre un espacio para identificarlo.'));if(modo==='provincia'||(modo==='explorar'&&filtro20))for(const en of entradas){const b=el('button',null,en.e.espacio+' · '+en.e.tipo);b.onclick=()=>{cambiarModo('espacio');elegirEspacio(catalogoEspacios.get(en.key))};const c=el('div','espacio');c.append(b);if(modo==='provincia'){const rr=rows.filter(r=>claveRelacion(r.cod,r.e).slice(r.cod.length+2)===en.key);const ha=rr.reduce((a,r)=>a+Number(r.e.solape_ha||0),0),pe=rr.reduce((a,r)=>a+Number(r.e.pct_espacio||0),0),pp=100*ha/areasProvincia21[provincia20];const fmt=v=>v.toLocaleString('es-ES',{maximumFractionDigits:2});c.append(el('div','detalle',fmt(ha)+' ha · '+fmt(pp)+' % de la provincia · '+fmt(pe)+' % del espacio'));} $res.append(c)}if(modo==='provincia'){resumen3();construirPanel();}else{$panel.replaceChildren();$leyenda.replaceChildren();}requestAnimationFrame(()=>{ancho=$mapa.clientWidth;alto=$mapa.clientHeight;zoom=7;centro=merc(-4.6,37.5);encuadre={zoom,centro:{...centro}};dibujarGeometrias()})}
+ function territorio20(){const rows=filas20(), keys=new Set(rows.map(r=>claveRelacion(r.cod,r.e).slice(r.cod.length+2)));if(modo==='explorar')for(const k of catalogoEspacios.keys())keys.add(k);entradas=[...keys].map(key=>{const x=catalogoEspacios.get(key);return {key,e:{...x,geom:window.RENPA_ESPACIOS_COMPLETOS[key]},activa:true,color:colorDe(x.tipo)}}).filter(x=>x.e.geom&&acepta20(x.e));$res.replaceChildren(el('h2',null,modo==='provincia'?provincia20:'Explorar Andalucía'));if(modo==='provincia')$res.append(el('p','detalle','Superficie provincial: '+areasProvincia21[provincia20].toLocaleString('es-ES',{maximumFractionDigits:2})+' ha. Porcentajes calculados con las relaciones municipales admitidas; no sumar entre figuras.'));if(modo==='explorar')$res.append(el('p','detalle','Selecciona una figura de protección para filtrar el mapa. Pulsa sobre un espacio para identificarlo.'));if(modo==='provincia'||(modo==='explorar'&&filtro20))for(const en of entradas){const b=el('button',null,en.e.espacio+' · '+en.e.tipo);b.onclick=()=>{cambiarModo('espacio');elegirEspacio(catalogoEspacios.get(en.key))};const c=el('div','espacio');c.append(b);if(modo==='provincia'){const rr=rows.filter(r=>claveRelacion(r.cod,r.e).slice(r.cod.length+2)===en.key);const ha=rr.reduce((a,r)=>a+Number(r.e.solape_ha||0),0),pe=rr.reduce((a,r)=>a+Number(r.e.pct_espacio||0),0),pp=100*ha/areasProvincia21[provincia20];const fmt=v=>v.toLocaleString('es-ES',{maximumFractionDigits:2});c.append(el('div','detalle',fmt(ha)+' ha · '+fmt(pp)+' % de la provincia · '+fmt(pe)+' % del espacio'));} $res.append(c)}if(modo==='provincia'){resumen3();construirPanel();}else{$panel.replaceChildren();$leyenda.replaceChildren();}requestAnimationFrame(()=>{ancho=$mapa.clientWidth;alto=$mapa.clientHeight;const geoms=modo==='provincia'?Object.keys(DATOS).filter(c=>DATOS[c].provincia===provincia20).map(c=>GEO[c]?.mun).filter(Boolean):Object.values(window.RENPA_ESPACIOS_COMPLETOS);if(!ajustarBounds({type:'GeometryCollection',geometries:geoms},12,.08)){zoom=6;centro=merc(-4.6,37.5);encuadre={zoom,centro:{...centro}};}dibujarGeometrias()})}
 function resumen3(){
  const ids=modo==='municipio'&&actual?[actual]:modo==='provincia'?Object.keys(DATOS).filter(k=>DATOS[k].provincia===provincia20):[];
  if(!ids.length)return;
@@ -776,13 +796,29 @@ function resumen3(){
 }
 function descargar3(data,name,type){const a=el('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
 
- function configurar20(n){extra20.hidden=false;extra20.replaceChildren();const sel=el('select');sel.setAttribute('aria-label','Figura de protección');sel.append(new Option('Todas las figuras',''));const disponibles=[...new Set(listaEspacios.map(x=>x.tipo))]; for(const [nombre,tipos] of grupos32){const grupo=el('optgroup');grupo.label=nombre;for(const [tipo,label] of tipos){const real=disponibles.find(t=>norm(t)===norm(tipo));if(real)grupo.append(new Option(label,real));}if(grupo.children.length)sel.append(grupo);}const otros=disponibles.filter(t=>!tipo32(t));if(otros.length){const g=el('optgroup');g.label='Otras delimitaciones cartográficas';otros.forEach(t=>g.append(new Option(t,t)));sel.append(g);}sel.value=filtro20;sel.onchange=()=>{filtro20=sel.value;if(actual)mostrar();else if(punto)consultarPunto(...punto);else if((n==='provincia'&&provincia20)||n==='explorar')territorio20();else if(n==='espacio'){if(espacioActual&&!acepta20(espacioActual)){espacioActual=null;entradas=[];limitesExtra=[];capaMun=null;$res.replaceChildren();$panel.replaceChildren();$leyenda.replaceChildren();$qEspacio.value='';dibujarGeometrias();}else if(espacioActual)mostrarEspacio();sugerirEspacios();}else dibujarGeometrias()};sel.className='figura33';extra20.append(sel);const op=el('input');op.type='range';op.min=0;op.max=100;op.value=opacidad20*100;op.setAttribute('aria-label','Transparencia');op.oninput=()=>{opacidad20=op.value/100;dibujarGeometrias()};extra20.append(el('span',null,'Opacidad'),op);function boton(t,f){const b=el('button',null,t);b.onclick=f;extra20.append(b)}boton('CSV',exportar20);boton('Compartir',async()=>{const u=new URL(location.href);u.searchParams.set('consulta',JSON.stringify(consulta20()));try{if(navigator.share)await navigator.share({url:u.href});else if(navigator.clipboard)await navigator.clipboard.writeText(u.href);else prompt('Copia el enlace',u.href)}catch(e){}});boton('☆ Guardar',()=>{const q=consulta20();q.nombre=DATOS[actual]?.nombre||espacioActual?.espacio||provincia20||(punto?punto.slice().reverse().join(', '):'Explorar Andalucía');const a=favoritos20();a.push(q);localStorage.setItem('renpa_favoritos20',JSON.stringify(a));pintarFav20()});if(n==='provincia'){const nombres=[...new Set(lista.map(x=>x.provincia))].sort();const wrap=el('div','prov33');const p=el('input');p.placeholder='Escribe el nombre de una provincia…';p.setAttribute('aria-label','Buscar provincia');p.autocomplete='off';p.value=provincia20;const ul=el('ul','provSug33');ul.hidden=true;const elegirP=v=>{provincia20=v;p.value=v;ul.hidden=true;territorio20()};const sugerirP=()=>{ul.replaceChildren();nombres.filter(v=>norm(v).includes(norm(p.value))).forEach(v=>{const li=el('li',null,v);li.onmousedown=e=>{e.preventDefault();elegirP(v)};ul.append(li)});ul.hidden=!ul.children.length};p.oninput=sugerirP;p.onfocus=()=>{p.select();sugerirP()};p.onblur=()=>setTimeout(()=>ul.hidden=true,150);p.onkeydown=e=>{if(e.key==='Enter'&&ul.firstChild){e.preventDefault();elegirP(ul.firstChild.textContent)}if(e.key==='Escape')ul.hidden=true};wrap.append(p,ul);extra20.prepend(wrap);if(provincia20)territorio20();else $res.append(el('p','detalle','Selecciona una provincia para consultar su territorio.'))}if(n==='explorar')territorio20()}
+ function configurar20(n){extra20.hidden=false;extra20.replaceChildren();const sel=el('select');sel.setAttribute('aria-label','Figura de protección');sel.append(new Option('Todas las figuras',''));const disponibles=[...new Set(listaEspacios.map(x=>x.tipo))]; for(const [nombre,tipos] of grupos32){const grupo=el('optgroup');grupo.label=nombre;for(const [tipo,label] of tipos){const real=disponibles.find(t=>norm(t)===norm(tipo));if(real)grupo.append(new Option(label,real));}if(grupo.children.length)sel.append(grupo);}const otros=disponibles.filter(t=>!tipo32(t));if(otros.length){const g=el('optgroup');g.label='Otras delimitaciones cartográficas';otros.forEach(t=>g.append(new Option(t,t)));sel.append(g);}sel.value=filtro20;sel.onchange=()=>{filtro20=sel.value;if(actual)mostrar();else if(punto)consultarPunto(...punto);else if((n==='provincia'&&provincia20)||n==='explorar')territorio20();else if(n==='espacio'){if(espacioActual&&!acepta20(espacioActual)){espacioActual=null;entradas=[];limitesExtra=[];capaMun=null;$res.replaceChildren();$panel.replaceChildren();$leyenda.replaceChildren();$qEspacio.value='';dibujarGeometrias();}else if(espacioActual)mostrarEspacio();sugerirEspacios();}else dibujarGeometrias()};sel.className='figura33';extra20.append(sel);const op=el('input');op.type='range';op.min=0;op.max=100;op.value=opacidad20*100;op.setAttribute('aria-label','Transparencia');op.oninput=()=>{opacidad20=op.value/100;dibujarGeometrias()};extra20.append(el('span',null,'Opacidad'),op);function boton(t,f){const b=el('button',null,t);b.onclick=f;extra20.append(b)}boton('CSV',exportar20);boton('Compartir',async()=>{const u=new URL(location.href);u.searchParams.set('consulta',JSON.stringify(consulta20()));try{if(navigator.share)await navigator.share({url:u.href});else if(navigator.clipboard)await navigator.clipboard.writeText(u.href);else prompt('Copia el enlace',u.href)}catch(e){}});boton('☆ Guardar',()=>{const q=consulta20();q.nombre=DATOS[actual]?.nombre||espacioActual?.espacio||provincia20||(punto?punto.slice().reverse().join(', '):'Explorar Andalucía');const a=favoritos20();a.push(q);localStorage.setItem('renpa_favoritos20',JSON.stringify(a));pintarFav20()});if(n==='provincia'){const nombres=[...new Set(lista.map(x=>x.provincia))].sort();const wrap=el('div','prov33');const p=el('input');p.placeholder='Escribe el nombre de una provincia…';p.setAttribute('aria-label','Buscar provincia');p.autocomplete='off';p.type='search';p.value=provincia20;const ul=el('ul','provSug33');ul.hidden=true;const elegirP=v=>{provincia20=v;p.value=v;ul.hidden=true;p.blur();territorio20();ficha.scrollTop=0};const sugerirP=()=>{ul.replaceChildren();nombres.filter(v=>norm(v).includes(norm(p.value))).forEach(v=>{const li=el('li'), b=el('button',null,v);b.type='button';b.onpointerdown=e=>e.preventDefault();b.onclick=()=>elegirP(v);li.append(b);ul.append(li)});ul.hidden=!ul.children.length};p.oninput=sugerirP;p.onfocus=()=>{p.value='';limpiarResultado36();sugerirP()};p.onclick=()=>{if(provincia20){p.value='';limpiarResultado36();sugerirP()}};p.onblur=()=>setTimeout(()=>ul.hidden=true,150);p.onkeydown=e=>{if(e.key==='Enter'&&ul.firstChild){e.preventDefault();elegirP(ul.firstChild.textContent)}if(e.key==='Escape')ul.hidden=true};wrap.append(p,ul);extra20.prepend(wrap);if(provincia20)territorio20();else $res.append(el('p','detalle','Selecciona una provincia para consultar su territorio.'))}if(n==='explorar')territorio20()}
  document.getElementById('gps20').onclick=()=>{if(!navigator.geolocation){error.textContent='GPS no disponible';return}error.textContent='Buscando ubicación…';navigator.geolocation.getCurrentPosition(p=>{if(modo==='punto'){document.getElementById('qPunto').value=p.coords.latitude+', '+p.coords.longitude;consultarPunto(p.coords.longitude,p.coords.latitude)}},e=>error.textContent='No se pudo obtener la ubicación: '+e.message,{enableHighAccuracy:true,timeout:15000})};pintarFav20();
 
  document.querySelectorAll('#homeChoices button').forEach(b=>{b.disabled=false;b.onclick=()=>cambiarModo(b.dataset.mode)});
  document.getElementById('homeLoading').hidden=true;
- try{const q=new URLSearchParams(location.search);if(q.has('consulta'))abrir20(JSON.parse(q.get('consulta')))}catch(e){};
- document.getElementById('homeBack').onclick=()=>{document.activeElement.blur();document.getElementById('visor').hidden=true;document.getElementById('inicio').hidden=false;document.getElementById('homeBack').hidden=true;};
+ // Una entrada de historial para el visor: Atrás vuelve al menú, no sale de la app.
+ let restaurando36=false, volviendo36=false;
+ const modos36=['municipio','espacio','punto','provincia','explorar'];
+ function urlInicio36(){const u=new URL(location.href);u.searchParams.delete('consulta');return u.href;}
+ function registrarModo36(nuevo){
+   if(restaurando36)return;
+   try{const estado={renpa36:'visor',modo:nuevo};if(history.state?.renpa36==='visor')history.replaceState(estado,'',urlInicio36());else history.pushState(estado,'',urlInicio36());}catch(e){console.warn('RENPA: historial',e);}
+ }
+ function volverInicio36(){document.activeElement.blur();limpiarBusqueda36();limpiarResultado36();document.getElementById('visor').hidden=true;document.getElementById('inicio').hidden=false;document.getElementById('homeBack').hidden=true;document.getElementById('inicio').scrollTop=0;}
+ document.getElementById('homeBack').onclick=()=>{volverInicio36();if(history.state?.renpa36==='visor'&&!volviendo36){volviendo36=true;history.back();}};
+ window.addEventListener('popstate',ev=>{volviendo36=false;if(ev.state?.renpa36==='visor'&&modos36.includes(ev.state.modo)){restaurando36=true;try{cambiarModo(ev.state.modo);}finally{restaurando36=false;}}else volverInicio36();});
+ const estadoInicial36=history.state, consultaInicial36=new URLSearchParams(location.search).get('consulta');
+ try{
+   if(consultaInicial36){const q=JSON.parse(consultaInicial36);history.replaceState({renpa36:'inicio'},'',urlInicio36());if(modos36.includes(q.modo))abrir20(q);}
+   else if(estadoInicial36?.renpa36==='visor'&&modos36.includes(estadoInicial36.modo)){restaurando36=true;try{cambiarModo(estadoInicial36.modo);}finally{restaurando36=false;}}
+   else history.replaceState({renpa36:'inicio'},'',urlInicio36());
+ }catch(e){console.warn('RENPA: consulta inicial',e);}
+
 
  let actualizando34=false,ultimaComprobacion34=Date.now();
  const firmaCorrecciones34=()=>JSON.stringify([incidencias.map(x=>x.clave).sort(),confirmaciones.map(x=>x.clave).sort()]);
