@@ -41,6 +41,7 @@
 <button id="homePunto" data-mode="punto" disabled><span class="homeIcon">⊙</span><span><strong>Consulta por punto</strong><small>Comprueba si una ubicación se encuentra dentro de un espacio natural protegido.</small></span><span>›</span></button>
 </div><p id="homeLoading" role="status">Cargando cartografía…</p>
 <button id="homeGuide" type="button">ⓘ Cómo utilizar la aplicación</button>
+<section class="updatePanel" aria-label="Actualizaciones"><small>RENPA · Versión 1.16</small><button id="checkUpdate" type="button">↻ Buscar actualizaciones</button><p id="updateStatus" role="status" aria-live="polite"></p></section>
 <section id="installPanel" class="install-panel" aria-label="Instalar aplicación RENPA">
 <h2>📲 Lleva RENPA en tu móvil</h2>
 <div id="installAndroid" hidden><p>Instala la aplicación para abrirla desde tu pantalla de inicio.</p><button id="installAction" type="button">Instalar aplicación</button></div>
@@ -74,7 +75,19 @@ window.RENPA_CARGAR_CORRECCIONES().catch(console.error).finally(function(){
  const s=document.createElement('script');s.src='js/public.js';document.body.appendChild(s);
 });
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.warn));}</script>
+<script>
+(()=>{
+ const btn=document.getElementById('checkUpdate'),status=document.getElementById('updateStatus');
+ if(!('serviceWorker' in navigator)){btn.disabled=true;status.textContent='Actualizaciones automáticas no disponibles en este navegador.';return;}
+ let reg,checking=false,reloading=false,hadController=!!navigator.serviceWorker.controller;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController&&!reloading){reloading=true;location.reload();}else{hadController=true;status.textContent='Aplicación preparada para usar sin conexión.';}});
+ function watch(w){if(!w)return;status.textContent='Preparando archivos de la aplicación…';w.addEventListener('statechange',()=>{if(w.state==='redundant')status.textContent='No se pudo preparar la versión. Comprueba la conexión y vuelve a intentarlo.';if(w.state==='activated')status.textContent='Versión preparada.';});}
+ async function check(manual=false){if(checking||!reg)return;if(!navigator.onLine){if(manual)status.textContent='Sin conexión. Puedes seguir usando la versión guardada.';return;}checking=true;btn.disabled=true;if(manual)status.textContent='Buscando actualizaciones…';try{await reg.update();if(reg.installing)watch(reg.installing);else if(reg.waiting)status.textContent='Activando nueva versión…';else if(manual)status.textContent='No hay una nueva versión disponible.';}catch(e){status.textContent='No se pudo comprobar la actualización. Inténtalo de nuevo.';}finally{checking=false;btn.disabled=false;}}
+ navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>{reg=r;r.addEventListener('updatefound',()=>watch(r.installing));if(r.installing)watch(r.installing);else check();}).catch(()=>{status.textContent='No se pudo preparar la instalación. Recarga con conexión a Internet.';});
+ btn.onclick=()=>{if(reg)check(true);else location.reload();};
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});window.addEventListener('online',()=>check());setInterval(()=>{if(!document.hidden)check();},60000);
+})();
+</script>
 <script>
 (function(){
  const panel=document.getElementById('installPanel');
@@ -91,7 +104,7 @@ window.RENPA_CARGAR_CORRECCIONES().catch(console.error).finally(function(){
  const hidden=()=>{try{return sessionStorage.getItem('renpa-install-dismissed-v6')==='1'}catch(e){return false}};
  function show(){if(installed()||hidden()){panel.classList.remove('visible');return}android.hidden=!isAndroid;ios.hidden=!isIOS;other.hidden=isAndroid||isIOS;panel.classList.add('visible');}
  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();promptEvent=e;show();});
- btn.addEventListener('click',async function(){if(promptEvent){const p=promptEvent;promptEvent=null;p.prompt();try{await p.userChoice}catch(e){}if(installed())panel.classList.remove('visible');}else{android.innerHTML='<p>Abre el menú ⋮ de Chrome y selecciona <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>. Si no aparece, comprueba que estás usando Chrome y que la página ha terminado de cargar.</p>';}});
+ btn.addEventListener('click',async function(){if(promptEvent){const p=promptEvent;promptEvent=null;p.prompt();try{await p.userChoice}catch(e){}if(installed())panel.classList.remove('visible');}else{alert('Espera a que termine de prepararse la aplicación. También puedes abrir el menú de Chrome y elegir Instalar aplicación o Añadir a pantalla de inicio.');}});
  dismiss.addEventListener('click',function(){try{sessionStorage.setItem('renpa-install-dismissed-v6','1')}catch(e){}panel.classList.remove('visible');});
  window.addEventListener('appinstalled',()=>panel.classList.remove('visible'));
  window.addEventListener('pageshow',show);
